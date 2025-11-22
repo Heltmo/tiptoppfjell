@@ -295,10 +295,39 @@ const FeatureGrid = () => {
 const ContactPage = ({ onBack }) => {
   const [formState, setFormState] = useState({ name: '', company: '', email: '', message: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setError(null);
+
+    // Formspree-endpoint – BYTT UT MED DIN EGEN
+    const endpoint = "https://formspree.io/f/mvgywrjq"; 
+
+    try {
+      const formData = new FormData();
+      formData.append("Navn", formState.name);
+      formData.append("Selskap", formState.company);
+      formData.append("E-post", formState.email);
+      formData.append("Melding", formState.message);
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (res.ok) {
+        setIsSubmitted(true);
+        setFormState({ name: '', company: '', email: '', message: '' });
+      } else {
+        setError("Noe gikk galt. Prøv igjen senere.");
+      }
+    } catch (err) {
+      setError("Kunne ikke sende skjema. Sjekk tilkoblingen og prøv igjen.");
+    }
   };
 
   return (
@@ -322,7 +351,9 @@ const ContactPage = ({ onBack }) => {
             <>
               <div className="mb-10 text-center">
                 <h2 className="text-3xl md:text-4xl font-serif text-white mb-4">Ta kontakt</h2>
-                <p className="text-white/60">Fyll ut skjemaet, så tar en av våre rådgivere kontakt med deg innen kort tid.</p>
+                <p className="text-white/60">
+                  Fyll ut skjemaet, så tar en av våre rådgivere kontakt med deg innen kort tid.
+                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -332,6 +363,7 @@ const ContactPage = ({ onBack }) => {
                     <input 
                       required
                       type="text" 
+                      name="name"
                       placeholder="Ola Nordmann"
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-white/10 transition-all"
                       value={formState.name}
@@ -342,6 +374,7 @@ const ContactPage = ({ onBack }) => {
                     <label className="text-sm font-medium text-white/80 ml-1">Selskap</label>
                     <input 
                       type="text" 
+                      name="company"
                       placeholder="Bedrift AS"
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-white/10 transition-all"
                       value={formState.company}
@@ -355,6 +388,7 @@ const ContactPage = ({ onBack }) => {
                   <input 
                     required
                     type="email" 
+                    name="email"
                     placeholder="ola@bedrift.no"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-white/10 transition-all"
                     value={formState.email}
@@ -366,12 +400,17 @@ const ContactPage = ({ onBack }) => {
                   <label className="text-sm font-medium text-white/80 ml-1">Melding</label>
                   <textarea 
                     rows="4"
+                    name="message"
                     placeholder="Hva kan vi bistå med?"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-white/10 transition-all resize-none"
                     value={formState.message}
                     onChange={(e) => setFormState({...formState, message: e.target.value})}
                   ></textarea>
                 </div>
+
+                {error && (
+                  <p className="text-red-400 text-sm">{error}</p>
+                )}
 
                 <button 
                   type="submit"
@@ -401,6 +440,7 @@ const ContactPage = ({ onBack }) => {
     </div>
   );
 };
+
 
 // --- About Us Page ---
 const AboutUsPage = ({ onBack }) => {
